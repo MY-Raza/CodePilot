@@ -3,6 +3,8 @@ from typing import AsyncGenerator
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from backend.authentication import auth_router
+from backend.core.settings import API_V1_PREFIX
 
 # ---------------------------------------------------------------------------
 # CORS Configuration
@@ -159,17 +161,7 @@ def register_routes(app: FastAPI) -> None:
     # -------------------------------------------------------------------
     # API Router Placeholder
     # -------------------------------------------------------------------
-    # As feature modules (authentication, users, repository_management,
-    # rag_engine, ai_layer, ai_agents, integrations, automations, etc.)
-    # implement their routers, include them here. Example:
-    #
-    #   from backend.authentication.router import router as auth_router
-    #   from backend.users.router import router as users_router
-    #
-    #   app.include_router(auth_router, prefix="/api/v1/auth", tags=["Auth"])
-    #   app.include_router(users_router, prefix="/api/v1/users", tags=["Users"])
-    #
-    # Routers are intentionally not included yet since no submodules exist.
+    app.include_router(auth_router, prefix=API_V1_PREFIX)
 
 
 # ---------------------------------------------------------------------------
