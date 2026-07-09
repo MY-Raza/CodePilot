@@ -1,63 +1,54 @@
 import uuid
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import ForeignKey, Integer, String, UniqueConstraint
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import ForeignKey, Integer, String, Text
+from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from backend.database.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
 
 if TYPE_CHECKING:
-    from backend.database.models.embedding import Embedding
-    from backend.database.models.repository import Repository
+    from backend.database.models.document import Document
 
 
-class Document(Base, UUIDPrimaryKeyMixin, TimestampMixin):
-    """A single source file tracked within a repository.
+class Embedding(Base, UUIDPrimaryKeyMixin, TimestampMixin):
+    """A vector-embedded chunk of a source document.
 
     Attributes:
-        repository_id: Foreign key to the owning `Repository`.
-        file_path: Path of the file relative to the repository root.
-        file_name: Base name of the file (e.g. "main.py").
-        language: Detected programming language of the file.
-        file_extension: File extension, including the leading dot.
-        checksum: Content hash used to detect changes between sync runs.
-        chunk_count: Number of RAG chunks produced from this file.
-        repository: The `Repository` this document belongs to.
-        embeddings: Vector embeddings generated from this document's chunks.
+        document_id: Foreign key to the owning `Document`.
+        chunk_index: Zero-based position of this chunk within the document.
+        embedding_model: Identifier of the model used to generate the vector.
+        vector_id: ID referencing the corresponding vector in ChromaDB/Qdrant.
+        text: The raw text content of this chunk.
+        embedding_metadata: Arbitrary JSON metadata (e.g. line ranges, tags).
+        document: The `Document` this embedding was derived from.
     """
 
-    __tablename__ = "documents"
+    __tablename__ = "embeddings"
 
-    repository_id: Mapped[uuid.UUID] = mapped_column(
+    document_id: Mapped[uuid.UUID] = mapped_column(
         UUID(as_uuid=True),
-        ForeignKey("repositories.id", ondelete="CASCADE"),
+        ForeignKey("documents.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
     )
-    file_path: Mapped[str] = mapped_column(String(1024), nullable=False)
-    file_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    language: Mapped[str | None] = mapped_column(String(100), nullable=True)
-    file_extension: Mapped[str | None] = mapped_column(String(20), nullable=True)
-    checksum: Mapped[str] = mapped_column(String(64), nullable=False)
-    chunk_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+    chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    embedding_model: Mapped[str] = mapped_column(String(255), nullable=False)
+    vector_id: Mapped[str] = mapped_column(String(255), nullable=False, index=True)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+
+    # NOTE: Mapped as `embedding_metadata` in Python to avoid colliding with
+    # SQLAlchemy's reserved `Base.metadata` attribute; the underlying column
+    # name remains "metadata" for schema/API clarity.
+    embedding_metadata: Mapped[dict[str, Any] | None] = mapped_column(
+        "metadata", JSONB, nullable=True
+    )
 
     # ---------------------------------------------------------------
     # Relationships
     # ---------------------------------------------------------------
-    repository: Mapped["Repository"] = relationship(back_populates="documents")
-    embeddings: Mapped[list["Embedding"]] = relationship(
-        back_populates="document",
-        cascade="all, delete-orphan",
-    )
-
-    __table_args__ = (
-        # A given file path should only appear once per repository.
-        UniqueConstraint(
-            "repository_id", "file_path", name="uq_documents_repository_file_path"
-        ),
-    )
+    document: Mapped["Document"] = relationship(back_populates="embeddings")
 
     def __repr__(self) -> str:
-        """Return a debug-friendly representation of the document."""
-        return f"<Document id={self.id} file_path={self.file_path!r}>"
+        """Return a debug-friendly representation of the embedding."""
+        return f"<Embedding id={self.id} chunk_index={self.chunk_index}>"
