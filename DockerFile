@@ -1,0 +1,74 @@
+# =============================================================================
+# Dockerfile - CodePilot Backend
+# =============================================================================
+# Production-ready image for the FastAPI backend service.
+# Base image: Python 3.12 slim (smaller footprint than the full Python image,
+# while still providing the standard CPython interpreter and pip toolchain).
+# =============================================================================
+
+FROM python:3.12-slim
+
+# -----------------------------------------------------------------------------
+# Environment Variables
+# -----------------------------------------------------------------------------
+# PYTHONDONTWRITEBYTECODE: Prevents Python from writing .pyc files to disk,
+#   keeping the container filesystem clean and slightly faster on startup.
+# PYTHONUNBUFFERED: Forces stdout/stderr to be unbuffered so logs are
+#   flushed immediately, which is essential for real-time log visibility
+#   in Docker/Railway log streams.
+# PIP_NO_CACHE_DIR: Disables pip's cache to reduce final image size.
+# PIP_DISABLE_PIP_VERSION_CHECK: Skips the pip version check for faster
+#   and quieter installs.
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1
+
+# -----------------------------------------------------------------------------
+# Working Directory
+# -----------------------------------------------------------------------------
+# All subsequent instructions (COPY, RUN, CMD) execute relative to /app.
+WORKDIR /app
+
+# -----------------------------------------------------------------------------
+# System Dependencies (optional but common for PostgreSQL drivers, build tools)
+# -----------------------------------------------------------------------------
+# build-essential and libpq-dev are commonly required for compiling Python
+# packages such as psycopg2 (PostgreSQL driver). Removed from apt cache
+# afterward to keep the image slim.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends \
+        build-essential \
+        libpq-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# -----------------------------------------------------------------------------
+# Install Python Dependencies
+# -----------------------------------------------------------------------------
+# Copy only requirements.txt first so Docker can cache this layer.
+# This means dependency installation is skipped on rebuilds unless
+# requirements.txt itself changes, significantly speeding up iterative builds.
+COPY requirements.txt .
+
+RUN pip install --no-cache-dir -r requirements.txt
+
+# -----------------------------------------------------------------------------
+# Copy Application Source Code
+# -----------------------------------------------------------------------------
+# Copied after dependency installation so that source code changes do not
+# invalidate the dependency layer cache.
+COPY . .
+
+# -----------------------------------------------------------------------------
+# Expose Port
+# -----------------------------------------------------------------------------
+# The FastAPI application (via uvicorn) listens on port 8000 inside the
+# container. This must be mapped to a host port at runtime (e.g. -p 8000:8000).
+EXPOSE 8000
+
+# -----------------------------------------------------------------------------
+# Runtime Command
+# -----------------------------------------------------------------------------
+# Launch the FastAPI app using uvicorn, binding to all network interfaces
+# (0.0.0.0) so the container is reachable from outside, on port 8000.
+CMD ["uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8000"]
