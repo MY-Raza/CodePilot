@@ -5,6 +5,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from backend.authentication import auth_router
 from backend.core.settings import API_V1_PREFIX
+from backend.users import users_router
 
 # ---------------------------------------------------------------------------
 # CORS Configuration
@@ -162,7 +163,7 @@ def register_routes(app: FastAPI) -> None:
     # API Router Placeholder
     # -------------------------------------------------------------------
     app.include_router(auth_router, prefix=API_V1_PREFIX)
-
+    app.include_router(users_router, prefix=API_V1_PREFIX)
 
 # ---------------------------------------------------------------------------
 # Application Instance
