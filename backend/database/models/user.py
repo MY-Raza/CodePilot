@@ -1,11 +1,3 @@
-# backend/database/models/user.py
-"""User ORM model.
-
-Represents an authenticated account within the platform. A user owns
-repositories, projects, and conversations, and authenticates via
-JWT-based credentials managed by the `authentication` module.
-"""
-
 import enum
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -62,7 +54,11 @@ class User(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
     last_name: Mapped[str | None] = mapped_column(String(100), nullable=True)
     avatar_url: Mapped[str | None] = mapped_column(String(512), nullable=True)
     role: Mapped[UserRole] = mapped_column(
-        SAEnum(UserRole, name="user_role"),
+        SAEnum(
+            UserRole,
+            name="user_role",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
         default=UserRole.DEVELOPER,
         server_default=UserRole.DEVELOPER.value,
         nullable=False,

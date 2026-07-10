@@ -36,13 +36,21 @@ class AgentRun(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         index=True,
     )
     agent_name: Mapped[AgentName] = mapped_column(
-        SAEnum(AgentName, name="agent_name"),
+        SAEnum(
+            AgentName,
+            name="agent_name",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
         nullable=False,
         index=True,
     )
     model_name: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[ApplicationStatus] = mapped_column(
-        SAEnum(ApplicationStatus, name="agent_run_status"),
+        SAEnum(
+            ApplicationStatus,
+            name="agent_run_status",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
         default=ApplicationStatus.PENDING,
         server_default=ApplicationStatus.PENDING.value,
         nullable=False,

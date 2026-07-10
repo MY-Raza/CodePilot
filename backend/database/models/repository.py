@@ -58,7 +58,11 @@ class Repository(Base, UUIDPrimaryKeyMixin, TimestampMixin):
         String(255), nullable=False, default="main"
     )
     status: Mapped[RepositoryStatus] = mapped_column(
-        SAEnum(RepositoryStatus, name="repository_status"),
+        SAEnum(
+            RepositoryStatus,
+            name="repository_status",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
         default=RepositoryStatus.INDEXING,
         server_default=RepositoryStatus.INDEXING.value,
         nullable=False,

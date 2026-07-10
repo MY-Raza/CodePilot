@@ -1,3 +1,4 @@
+
 import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -37,7 +38,11 @@ class AutomationJob(Base, UUIDPrimaryKeyMixin, TimestampMixin):
     )
     job_name: Mapped[str] = mapped_column(String(255), nullable=False)
     status: Mapped[ApplicationStatus] = mapped_column(
-        SAEnum(ApplicationStatus, name="automation_job_status"),
+        SAEnum(
+            ApplicationStatus,
+            name="automation_job_status",
+            values_callable=lambda enum_cls: [member.value for member in enum_cls],
+        ),
         default=ApplicationStatus.PENDING,
         server_default=ApplicationStatus.PENDING.value,
         nullable=False,
