@@ -1,3 +1,11 @@
+# backend/database/models/user.py
+"""User ORM model.
+
+Represents an authenticated account within the platform. A user owns
+repositories, projects, and conversations, and authenticates via
+JWT-based credentials managed by the `authentication` module.
+"""
+
 import enum
 from datetime import datetime
 from typing import TYPE_CHECKING
@@ -73,7 +81,7 @@ class User(Base, UUIDPrimaryKeyMixin, TimestampMixin, SoftDeleteMixin):
     # Relationships
     # ---------------------------------------------------------------
     repositories: Mapped[list["Repository"]] = relationship(
-        back_populates="owner",
+        back_populates="owner_user",
         cascade="all, delete-orphan",
     )
     conversations: Mapped[list["Conversation"]] = relationship(

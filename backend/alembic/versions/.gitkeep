@@ -1,0 +1,4 @@
+# backend/alembic/versions/.gitkeep
+# This file exists solely so the empty `versions/` directory is tracked
+# by git before any migrations have been generated. It can be deleted
+# once the first migration file is added.

@@ -17,5 +17,51 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+    healthcheck:
+      # Ensures the backend doesn't start attempting connections before
+      # Postgres has finished initializing and is ready to accept them.
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+    networks:
+      - ai_network
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: ai_backend
+
+    restart: always
+
+    env_file:
+      # Loads all other configuration (JWT_SECRET, GROQ_API_KEY, etc.)
+      # from your local .env file, which is never baked into the image.
+      - .env
+
+    environment:
+      # Overrides whatever DATABASE_URL is set to in .env, ensuring the
+      # backend always talks to the "postgres" service by its Docker
+      # network alias rather than localhost.
+      DATABASE_URL: postgresql://postgres:y2s57r29a@postgres:5432/ai_dev_assistant
+
+    ports:
+      - "8000:8000"
+
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+    networks:
+      - ai_network
+
+networks:
+  ai_network:
+    driver: bridge
+
 volumes:
   postgres_data:
