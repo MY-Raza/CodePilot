@@ -164,6 +164,15 @@ class Settings(BaseSettings):
         default=None,
         description="Personal access token for GitHub API integration.",
     )
+    github_webhook_secret: str | None = Field(
+        default=None,
+        description=(
+            "Shared secret used to verify the HMAC-SHA256 signature "
+            "(X-Hub-Signature-256) on inbound GitHub webhook deliveries. "
+            "Must match the 'Secret' value configured on the webhook in "
+            "the GitHub repository/organization settings."
+        ),
+    )
 
     # -------------------------------------------------------------------
     # Jira Integration

@@ -143,7 +143,7 @@ async def receive_github_webhook(
             JSON, 500 if the webhook secret is not configured.
     """
     settings = get_settings()
-    webhook_secret = getattr(settings, "github_webhook_secret", None)
+    webhook_secret = settings.github_webhook_secret
     if not webhook_secret:
         logger.error("GITHUB_WEBHOOK_SECRET is not configured.")
         raise HTTPException(
