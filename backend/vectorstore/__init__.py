@@ -1,0 +1,55 @@
+from backend.vectorstore.base import VectorStoreBase
+from backend.vectorstore.exceptions import (
+    CollectionNotFoundError,
+    ConnectionFailedError,
+    DeleteFailedError,
+    InsertFailedError,
+    SearchFailedError,
+    VectorDatabaseUnavailableError,
+    VectorStoreError,
+)
+from backend.vectorstore.factory import (
+    DEFAULT_COLLECTION_NAME,
+    DEFAULT_DISTANCE_METRIC,
+    DEFAULT_TOP_K,
+    VectorStoreFactory,
+    get_vector_store,
+)
+from backend.vectorstore.schemas import (
+    BatchInsertRequest,
+    CollectionResponse,
+    DeleteRequest,
+    DistanceMetric,
+    EmbeddingRecord,
+    HealthResponse,
+    SearchRequest,
+    SearchResult,
+    VectorDocument,
+    generate_vector_id,
+)
+
+__all__ = [
+    "VectorStoreBase",
+    "VectorStoreFactory",
+    "get_vector_store",
+    "DEFAULT_COLLECTION_NAME",
+    "DEFAULT_DISTANCE_METRIC",
+    "DEFAULT_TOP_K",
+    "VectorDocument",
+    "EmbeddingRecord",
+    "SearchRequest",
+    "SearchResult",
+    "BatchInsertRequest",
+    "DeleteRequest",
+    "CollectionResponse",
+    "HealthResponse",
+    "DistanceMetric",
+    "generate_vector_id",
+    "VectorStoreError",
+    "CollectionNotFoundError",
+    "VectorDatabaseUnavailableError",
+    "InsertFailedError",
+    "DeleteFailedError",
+    "SearchFailedError",
+    "ConnectionFailedError",
+]
